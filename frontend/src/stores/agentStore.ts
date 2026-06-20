@@ -18,6 +18,44 @@ import type {
 const STAGE_KEYS: StageKey[] = ['analysis', 'fix', 'execution', 'reflection']
 
 export const useAgentStore = defineStore('agent', () => {
+  // ---------- 主题 ----------
+  const THEME_KEY = 'bug-agent-theme'
+  type ThemeMode = 'auto' | 'light' | 'dark'
+  const theme = ref<ThemeMode>('auto')
+
+  function loadTheme(): ThemeMode {
+    try {
+      const v = localStorage.getItem(THEME_KEY)
+      if (v === 'light' || v === 'dark' || v === 'auto') return v
+    } catch {}
+    return 'auto'
+  }
+  function applyTheme(mode: ThemeMode): void {
+    theme.value = mode
+    try {
+      if (mode === 'auto') localStorage.removeItem(THEME_KEY)
+      else localStorage.setItem(THEME_KEY, mode)
+    } catch {}
+    // 写入 html data-theme
+    const html = document.documentElement
+    if (mode === 'auto') {
+      // 跟随系统
+      const sys = window.matchMedia?.('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      html.setAttribute('data-theme', sys)
+    } else {
+      html.setAttribute('data-theme', mode)
+    }
+  }
+  function cycleTheme(): void {
+    const order: ThemeMode[] = ['light', 'dark', 'auto']
+    const idx = order.indexOf(theme.value)
+    applyTheme(order[(idx + 1) % order.length])
+  }
+  theme.value = loadTheme()
+  if (typeof document !== 'undefined') applyTheme(theme.value)
+
   // ---------- 输入 ----------
   const language = ref<Language>('python')
   const originalCode = ref<string>('')
@@ -333,6 +371,7 @@ export const useAgentStore = defineStore('agent', () => {
     finalStatus,
     errorMsg,
     history,
+    theme,
     // getters
     isStreaming,
     canSubmit,
@@ -346,6 +385,8 @@ export const useAgentStore = defineStore('agent', () => {
     applyEvent,
     pushHistory,
     removeHistory,
-    loadHistoryEntry
+    loadHistoryEntry,
+    applyTheme,
+    cycleTheme
   }
 })

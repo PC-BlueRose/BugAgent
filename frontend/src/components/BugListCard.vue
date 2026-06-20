@@ -1,13 +1,13 @@
 <template>
   <div class="bugcard">
     <template v-if="!store.results.analysis && store.stageStatus.analysis === 'idle'">
-      <p class="muted">// 等待系统分析启动</p>
+      <p class="muted">等待系统分析启动</p>
     </template>
     <template v-else-if="store.stageStatus.analysis === 'running'">
-      <p class="muted">// 正在扫描代码...</p>
+      <p class="muted">正在扫描代码…</p>
     </template>
     <template v-else>
-      <p class="summary-text">{{ store.results.analysis?.summary || '—' }}</p>
+      <p class="summary">{{ store.results.analysis?.summary || '—' }}</p>
       <div v-if="store.results.analysis?.bugs?.length" class="bug-table">
         <div class="bug-row bug-header">
           <span class="bug-cell" style="flex: 0.5">#</span>
@@ -28,45 +28,42 @@
           <span class="bug-cell bug-desc" style="flex: 3">{{ b.description }}</span>
         </div>
       </div>
-      <p v-else class="muted">// 无 Bug</p>
+      <p v-else class="muted">无 Bug</p>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useAgentStore } from '@/stores/agentStore'
-import type { Severity } from '@/types/domain'
 
 const store = useAgentStore()
-
-function severityType(_s: Severity) {
-  return _s // keep
-}
 </script>
 
 <style scoped>
 .bugcard {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-primary);
 }
 .muted {
-  color: var(--text-muted);
+  color: var(--text-tertiary);
   font-style: italic;
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
 }
-.summary-text {
-  background: rgba(0, 240, 255, 0.05);
-  border-left: 2px solid var(--primary);
-  padding: 8px 12px;
-  margin: 0 0 10px;
-  font-size: 12px;
+.summary {
+  background: var(--primary-soft);
+  border-left: 3px solid var(--primary);
+  padding: 10px 14px;
+  margin: 0 0 14px;
+  font-size: 13px;
   color: var(--text-primary);
   white-space: pre-wrap;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 .bug-table {
   border: 1px solid var(--border-base);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 .bug-row {
   display: flex;
@@ -78,14 +75,14 @@ function severityType(_s: Severity) {
 }
 .bug-header {
   background: var(--bg-elevated);
-  font-weight: 700;
-  color: var(--primary);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 11px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .bug-cell {
-  padding: 6px 8px;
+  padding: 8px 10px;
   border-right: 1px solid var(--border-base);
   font-size: 12px;
 }
@@ -95,29 +92,31 @@ function severityType(_s: Severity) {
 .bug-line {
   color: var(--primary);
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
 }
 .bug-desc {
   color: var(--text-secondary);
 }
 .sev {
-  font-family: var(--font-mono);
+  display: inline-block;
+  padding: 1px 8px;
   font-size: 10px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border: 1px solid;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 4px;
 }
 .sev-high {
-  color: var(--error);
-  border-color: var(--error);
-  background: rgba(255, 56, 96, 0.1);
+  color: #ffffff;
+  background: var(--error);
 }
 .sev-medium {
-  color: var(--warning);
-  border-color: var(--warning);
+  color: #ffffff;
+  background: var(--warning);
 }
 .sev-low {
   color: var(--text-secondary);
-  border-color: var(--border-base);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-base);
 }
 </style>

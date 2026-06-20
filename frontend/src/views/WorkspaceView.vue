@@ -1,31 +1,24 @@
 <template>
   <div class="workspace">
-    <!-- ============= Header ============= -->
+    <!-- ============= Header (毛玻璃) ============= -->
     <header class="ws-header">
       <div class="ws-header-left">
-        <span class="ws-title">
-          <span class="ws-title-bar">▓▓▓</span>
-          BUG<span class="ws-title-sep">//</span>AGENT
-          <span class="ws-title-version">v2.4</span>
-          <span class="ws-title-bar">▓▓▓</span>
-        </span>
+        <h1 class="ws-title">Bug Agent</h1>
         <span class="ws-subtitle">基于大模型的代码 Bug 自动识别 · 修复 · 验证 · 反思</span>
       </div>
       <div class="ws-header-right">
-        <div class="ws-stat" v-if="store.isStreaming">
-          <span class="ws-stat-label">▌ ⏱ 已用时</span>
+        <div v-if="store.isStreaming" class="ws-stat">
+          <span class="ws-stat-label">已用时</span>
           <span class="ws-stat-value">{{ runningElapsed }}</span>
         </div>
-        <div class="ws-stat" v-else-if="store.elapsedText">
-          <span class="ws-stat-label">▌ ✓ 总耗时</span>
+        <div v-else-if="store.elapsedText" class="ws-stat">
+          <span class="ws-stat-label">总耗时</span>
           <span class="ws-stat-value">{{ store.elapsedText }}</span>
         </div>
         <span :class="['ws-badge', `is-${store.finalStatus}`]">
-          <template v-if="store.finalStatus === 'streaming'">◉ ANALYZING</template>
-          <template v-else-if="store.finalStatus === 'done'">✓ DONE</template>
-          <template v-else-if="store.finalStatus === 'error'">✗ ERROR</template>
-          <template v-else>○ STANDBY</template>
+          {{ badgeText }}
         </span>
+        <ThemeToggle />
       </div>
     </header>
 
@@ -39,27 +32,23 @@
       <!-- 中栏：代码 + 运行 -->
       <section class="ws-col ws-col-center">
         <header class="ws-col-header">
-          <span class="ws-col-num">▌</span>
-          <span class="ws-col-title">INPUT :: SOURCE CODE</span>
+          <span class="ws-col-title">Source Code</span>
         </header>
         <div class="ws-center-toolbar">
           <el-select v-model="store.language" :disabled="store.isStreaming" size="small" style="width: 130px">
             <el-option v-for="l in LANGUAGES" :key="l.value" :label="l.label" :value="l.value" />
           </el-select>
-          <el-upload :auto-upload="false" :show-file-list="false" accept=".py,.c,.cpp,.java,.cc,.cxx"
-            :on-change="onFile" v-slot="{ }">
-            <CyberButton variant="ghost" :disabled="store.isStreaming">
-              <template #icon>📁</template>
-              上传文件
-            </CyberButton>
+          <el-upload
+            :auto-upload="false"
+            :show-file-list="false"
+            accept=".py,.c,.cpp,.java,.cc,.cxx"
+            :on-change="onFile"
+          >
+            <button class="ap-btn ap-btn-ghost" :disabled="store.isStreaming">📁 上传文件</button>
           </el-upload>
-          <CyberButton variant="ghost" :disabled="store.isStreaming" @click="loadSample">
-            加载示例
-          </CyberButton>
-          <CyberButton variant="ghost" :disabled="store.isStreaming" @click="onClear">
-            清空
-          </CyberButton>
-          <span class="ws-char-count">{{ store.originalCode.length }} CHARS</span>
+          <button class="ap-btn ap-btn-ghost" :disabled="store.isStreaming" @click="loadSample">加载示例</button>
+          <button class="ap-btn ap-btn-ghost" :disabled="store.isStreaming" @click="onClear">清空</button>
+          <span class="ws-char-count">{{ store.originalCode.length }} 字符</span>
         </div>
 
         <div class="ws-editor">
@@ -71,58 +60,61 @@
         </div>
 
         <div class="ws-actions">
-          <CyberButton
-            variant="primary"
+          <button
+            class="ap-btn ap-btn-primary"
             :disabled="!store.canSubmit"
-            :loading="store.isStreaming"
             @click="store.submit"
           >
-            ▶ 开始分析
-          </CyberButton>
-          <CyberButton
-            variant="accent"
+            <span v-if="store.isStreaming" class="ap-spinner"></span>
+            <span v-else>▶</span>
+            {{ store.isStreaming ? '运行中…' : '开始分析' }}
+          </button>
+          <button
+            class="ap-btn ap-btn-accent"
             :disabled="!store.isStreaming"
             @click="store.stop"
           >
             ⏹ 停止
-          </CyberButton>
+          </button>
         </div>
       </section>
 
       <!-- 右栏：4 阶段 HUD -->
       <aside class="ws-col ws-col-right">
         <header class="ws-col-header">
-          <span class="ws-col-num">▌</span>
-          <span class="ws-col-title">AGENT :: PIPELINE</span>
-          <span class="ws-col-round" v-if="store.currentRound > 0">
+          <span class="ws-col-title">Analysis Pipeline</span>
+          <span v-if="store.currentRound > 0" class="ws-col-round">
             R{{ store.currentRound }}/{{ store.maxRounds }}
           </span>
         </header>
         <div class="ws-stages">
-          <StageCard num="01" title="SYSTEM ANALYSIS" :status="store.stageStatus.analysis">
+          <StageCard title="系统分析" :status="store.stageStatus.analysis">
             <BugListCard />
           </StageCard>
-          <StageCard num="02" title="AUTO FIX" :status="store.stageStatus.fix">
+          <StageCard title="自动修复" :status="store.stageStatus.fix">
             <FixResultCard />
           </StageCard>
-          <StageCard num="03" title="EXECUTION VERIFY" :status="store.stageStatus.execution">
+          <StageCard title="执行验证" :status="store.stageStatus.execution">
             <ExecResultCard />
           </StageCard>
-          <StageCard num="04" title="REFLECTION" :status="store.stageStatus.reflection">
+          <StageCard title="自我反思" :status="store.stageStatus.reflection">
             <ReflectionCard />
           </StageCard>
         </div>
       </aside>
     </main>
 
-    <!-- ============= Footer ============= -->
+    <!-- ============= Footer (毛玻璃) ============= -->
     <footer class="ws-footer">
-      <CyberButton variant="accent" :disabled="!store.canExportPdf" @click="exportPdf">
-        <template #icon>⬇</template>
-        生成 PDF 报告
-      </CyberButton>
+      <button
+        class="ap-btn ap-btn-primary"
+        :disabled="!store.canExportPdf"
+        @click="exportPdf"
+      >
+        ⬇ 生成 PDF 报告
+      </button>
       <span v-if="store.canExportPdf" class="ws-footer-text">
-        点击后浏览器将下载 A4 报告（共 {{ store.currentRound }} 轮，{{ store.elapsedText }}）
+        点击下载 A4 报告（共 {{ store.currentRound }} 轮，{{ store.elapsedText }}）
       </span>
       <span v-else-if="store.errorMsg" class="ws-footer-text ws-err">
         {{ store.errorMsg }}
@@ -133,7 +125,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { ElMessage, ElNotification } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 import HistoryPanel from '@/components/HistoryPanel.vue'
 import CodeEditor from '@/components/CodeEditor.vue'
@@ -142,7 +134,7 @@ import BugListCard from '@/components/BugListCard.vue'
 import FixResultCard from '@/components/FixResultCard.vue'
 import ExecResultCard from '@/components/ExecResultCard.vue'
 import ReflectionCard from '@/components/ReflectionCard.vue'
-import CyberButton from '@/components/CyberButton.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 import { useAgentStore } from '@/stores/agentStore'
 import { exportReportToPdf } from '@/utils/pdf'
@@ -170,6 +162,19 @@ const runningElapsed = computed(() => {
   if (!store.isStreaming || !store.startTime) return '0.0s'
   const ms = Date.now() - store.startTime
   return `${(ms / 1000).toFixed(1)}s`
+})
+
+const badgeText = computed(() => {
+  switch (store.finalStatus) {
+    case 'streaming':
+      return '◉ ANALYZING'
+    case 'done':
+      return '✓ DONE'
+    case 'error':
+      return '✗ ERROR'
+    default:
+      return '○ STANDBY'
+  }
 })
 
 async function onFile(file: { raw?: File }) {
@@ -215,252 +220,261 @@ async function exportPdf() {
   } catch (e: any) {
     ElMessage.error(`PDF 导出失败: ${e?.message || e}`)
   }
-  // suppress unused warning
-  void ElNotification
 }
 </script>
 
 <style scoped>
 .workspace {
   display: grid;
-  grid-template-rows: 56px 1fr 56px;
+  grid-template-rows: 60px 1fr 56px;
   height: 100vh;
   overflow: hidden;
   background: var(--bg-base);
 }
 
-/* ============= Header ============= */
+/* ============= Apple Button 通用类 ============= */
+.ap-btn {
+  font-family: var(--font-system);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.ap-btn:hover:not(:disabled) {
+  background: var(--bg-base);
+  border-color: var(--border-strong);
+}
+.ap-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.ap-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ap-btn-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+  font-weight: 600;
+}
+.ap-btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.ap-btn-accent {
+  background: transparent;
+  color: var(--error);
+  border-color: var(--error);
+}
+.ap-btn-accent:hover:not(:disabled) {
+  background: var(--error);
+  color: #ffffff;
+}
+
+.ap-btn-ghost {
+  background: transparent;
+  border-color: var(--border-base);
+  color: var(--text-primary);
+}
+.ap-btn-ghost:hover:not(:disabled) {
+  background: var(--bg-elevated);
+}
+
+.ap-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============= Header (毛玻璃) ============= */
 .ws-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: linear-gradient(180deg, #111726 0%, var(--bg-base) 100%);
-  border-bottom: 1px solid var(--primary);
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
-  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border-base);
 }
-.ws-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
 .ws-header-left {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 .ws-title {
-  font-family: var(--font-mono);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: var(--primary);
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
-}
-.ws-title-bar {
-  color: var(--accent);
-  margin: 0 8px;
-  text-shadow: 0 0 6px rgba(255, 0, 128, 0.5);
-}
-.ws-title-sep {
-  color: var(--accent);
-  margin: 0 2px;
-}
-.ws-title-version {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-left: 6px;
-  font-weight: 400;
-  text-shadow: none;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0;
 }
 .ws-subtitle {
   font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
 }
-
 .ws-header-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 .ws-stat {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
+  gap: 6px;
+  padding: 3px 10px;
   background: var(--bg-elevated);
-  border: 1px solid var(--border-base);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
 }
 .ws-stat-label {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 11px;
-  letter-spacing: 0.1em;
 }
 .ws-stat-value {
-  color: var(--primary);
-  font-weight: 700;
-  text-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 600;
 }
-
 .ws-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
-  font-family: var(--font-mono);
+  padding: 3px 10px;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  border: 1px solid;
-}
-.ws-badge.is-idle {
-  color: var(--text-muted);
-  border-color: var(--border-base);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
 }
 .ws-badge.is-streaming {
+  background: var(--primary-soft);
   color: var(--primary);
-  border-color: var(--primary);
-  box-shadow: var(--shadow-glow-primary);
 }
 .ws-badge.is-done {
-  color: var(--accent);
-  border-color: var(--accent);
-  box-shadow: var(--shadow-glow-accent);
+  background: rgba(52, 199, 89, 0.12);
+  color: var(--success);
 }
 .ws-badge.is-error {
+  background: rgba(255, 59, 48, 0.12);
   color: var(--error);
-  border-color: var(--error);
 }
 
 /* ============= Body 3 cols ============= */
 .ws-body {
   display: grid;
   grid-template-columns: 200px 1fr 460px;
-  gap: 12px;
-  padding: 12px;
+  gap: 0;
   overflow: hidden;
   min-height: 0;
 }
 .ws-col {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-base);
+  background: var(--bg-base);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
 }
 .ws-col-left {
-  /* HistoryPanel manages its own padding */
+  border-right: 1px solid var(--border-base);
 }
 .ws-col-center {
-  /* gap between toolbar, editor, actions */
-}
-.ws-col-right {
-  /* stages scroll */
+  border-right: 1px solid var(--border-base);
 }
 
 .ws-col-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border-base);
-  background: rgba(0, 240, 255, 0.03);
-}
-.ws-col-num {
-  color: var(--primary);
-  text-shadow: var(--shadow-glow-primary);
+  background: var(--bg-panel);
 }
 .ws-col-title {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: var(--primary);
   flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
 }
 .ws-col-round {
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--accent);
-  padding: 1px 6px;
-  border: 1px solid var(--accent);
-  text-shadow: var(--shadow-glow-accent);
+  font-size: 11px;
+  color: var(--primary);
+  padding: 2px 8px;
+  background: var(--primary-soft);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
 }
 
-/* 中栏：toolbar / editor / actions */
 .ws-center-toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border-base);
   flex-shrink: 0;
 }
 .ws-char-count {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
+  font-size: 11px;
+  color: var(--text-tertiary);
 }
 
 .ws-editor {
   flex: 1;
   min-height: 0;
-  padding: 12px 14px;
+  padding: 12px 16px;
+  overflow: hidden;
 }
 .ws-actions {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border-top: 1px solid var(--border-base);
   flex-shrink: 0;
 }
 
-/* 右栏：stages */
 .ws-stages {
   flex: 1;
   overflow: auto;
-  padding: 12px;
 }
 
-/* ============= Footer ============= */
+/* ============= Footer (毛玻璃) ============= */
 .ws-footer {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 0 20px;
-  background: linear-gradient(0deg, #111726 0%, var(--bg-base) 100%);
-  border-top: 1px solid var(--primary);
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
-  position: relative;
-}
-.ws-footer::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  animation: pulse-glow 3s ease-in-out infinite;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--border-base);
 }
 .ws-footer-text {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 .ws-err {
   color: var(--error);

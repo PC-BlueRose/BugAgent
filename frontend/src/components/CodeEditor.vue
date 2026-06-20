@@ -13,8 +13,6 @@
       @keydown="onKeydown"
       @paste="onPaste"
     ></pre>
-    <!-- 扫描线装饰 -->
-    <div class="ce-scanline" aria-hidden="true"></div>
   </div>
 </template>
 
@@ -31,7 +29,7 @@ const props = withDefaults(
   }>(),
   {
     readonly: false,
-    placeholder: '// 粘贴或输入代码\n// 也可点击「上传文件」或「加载示例」'
+    placeholder: '// 在此粘贴或输入代码\n// 也可点击「上传文件」或「加载示例」'
   }
 )
 const emit = defineEmits<{
@@ -42,7 +40,6 @@ const preEl = ref<HTMLPreElement | null>(null)
 
 function setText(text: string): void {
   if (!preEl.value) return
-  // 仅在内容不同时设置（避免 caret 跳动）
   if (preEl.value.innerText !== text) {
     preEl.value.innerText = text
   }
@@ -73,9 +70,7 @@ onMounted(async () => {
 
 watch(
   () => props.modelValue,
-  (val) => {
-    setText(val || '')
-  }
+  (val) => setText(val || '')
 )
 </script>
 
@@ -85,24 +80,25 @@ watch(
   width: 100%;
   height: 100%;
   background: var(--bg-code);
-  border: 1px solid var(--border-active);
-  box-shadow: var(--shadow-glow-primary);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-md);
   overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+.ce-wrap:focus-within {
+  border-color: var(--primary);
 }
 .ce-pre {
-  position: relative;
-  z-index: 2;
   width: 100%;
   height: 100%;
   margin: 0;
-  padding: 16px 18px 16px 18px;
+  padding: 14px 16px;
   background: transparent;
-  color: var(--text-code);
+  color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 13px;
-  line-height: 1.65;
+  line-height: 1.6;
   caret-color: var(--primary);
-  text-shadow: 0 0 4px rgba(127, 219, 255, 0.55);
   outline: none;
   white-space: pre-wrap;
   overflow-wrap: break-word;
@@ -111,36 +107,8 @@ watch(
 }
 .ce-pre:empty::before {
   content: attr(placeholder);
-  color: var(--text-muted);
+  color: var(--text-tertiary);
   font-style: italic;
-  text-shadow: none;
   pointer-events: none;
-}
-.ce-scanline {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 2px,
-    rgba(0, 240, 255, 0.025) 2px,
-    rgba(0, 240, 255, 0.025) 4px
-  );
-}
-.ce-scanline::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 80px;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(0, 240, 255, 0.06) 50%,
-    transparent
-  );
-  animation: scan-line 8s linear infinite;
 }
 </style>

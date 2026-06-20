@@ -1,14 +1,14 @@
 <template>
   <div class="fixcard">
     <template v-if="!store.results.fix && store.stageStatus.fix === 'idle'">
-      <p class="muted">// 等待系统分析完成后启动</p>
+      <p class="muted">等待系统分析完成后启动</p>
     </template>
     <template v-else-if="store.stageStatus.fix === 'running'">
-      <p class="muted">// 正在生成修复代码...</p>
+      <p class="muted">正在生成修复代码…</p>
     </template>
     <template v-else>
       <div v-if="store.results.fix?.explanation" class="explain">
-        <span class="explain-label">▌ 说明</span>
+        <span class="explain-label">说明</span>
         <p>{{ store.results.fix.explanation }}</p>
       </div>
       <pre class="code-block">{{ store.results.fix?.fixed_code || '—' }}</pre>
@@ -24,27 +24,26 @@ const store = useAgentStore()
 
 <style scoped>
 .fixcard {
-  font-size: 12px;
+  font-size: 13px;
 }
 .muted {
-  color: var(--text-muted);
+  color: var(--text-tertiary);
   font-style: italic;
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
 }
 .explain {
-  margin-bottom: 8px;
-  font-size: 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
 }
 .explain-label {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  color: var(--primary);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
   margin-bottom: 4px;
-  text-shadow: var(--shadow-glow-primary);
+  text-transform: uppercase;
+  font-weight: 600;
 }
 .explain p {
   margin: 0;
@@ -52,18 +51,18 @@ const store = useAgentStore()
   white-space: pre-wrap;
 }
 .code-block {
-  background: #000;
-  color: var(--text-code);
-  border: 1px solid var(--border-active);
-  padding: 10px 12px;
+  background: var(--bg-code);
+  color: var(--text-primary);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.55;
+  font-size: 12px;
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-all;
-  text-shadow: 0 0 4px rgba(127, 219, 255, 0.5);
-  max-height: 320px;
+  max-height: 360px;
   overflow: auto;
 }
 </style>

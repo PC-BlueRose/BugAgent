@@ -1,13 +1,12 @@
 <template>
   <div class="hp">
     <header class="hp-header">
-      <span class="hp-num">▌</span>
-      <span class="hp-title">HISTORY</span>
+      <span class="hp-title">History</span>
       <span class="hp-count">{{ store.history.length }}</span>
     </header>
     <div v-if="store.history.length === 0" class="hp-empty">
       <p class="muted">暂无历史记录</p>
-      <p class="muted-sm">完成分析后将自动记录</p>
+      <p class="muted-sm">完成分析后自动记录</p>
     </div>
     <ul v-else class="hp-list">
       <li
@@ -17,19 +16,14 @@
         @click="onPick(h)"
         :title="h.code.slice(0, 200)"
       >
-        <div class="hp-row1">
-          <span class="hp-status">
-            <template v-if="h.status === 'streaming'">◉</template>
-            <template v-else-if="h.status === 'done'">✓</template>
-            <template v-else>✗</template>
-          </span>
-          <span class="hp-lang">{{ langLabel(h.language) }}</span>
-          <button class="hp-del" @click.stop="onDel(h.id)" title="删除">×</button>
-        </div>
-        <div class="hp-row2 muted-sm">
-          <span>{{ formatTime(h.timestamp) }}</span>
-          <span class="hp-time">{{ formatElapsed(h.elapsedMs) }}</span>
-        </div>
+        <span class="hp-icon">
+          <template v-if="h.status === 'done'">✓</template>
+          <template v-else-if="h.status === 'error'">✗</template>
+          <template v-else>○</template>
+        </span>
+        <span class="hp-lang">{{ langLabel(h.language) }}</span>
+        <span class="hp-time">{{ formatElapsed(h.elapsedMs) }}</span>
+        <button class="hp-del" @click.stop="onDel(h.id)" title="删除">×</button>
       </li>
     </ul>
   </div>
@@ -43,13 +37,6 @@ const store = useAgentStore()
 
 function langLabel(lang: string): string {
   return languageLabel(lang as any)
-}
-
-function formatTime(ts: number): string {
-  const d = new Date(ts)
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${hh}:${mm}`
 }
 
 function formatElapsed(ms: number): string {
@@ -78,34 +65,31 @@ function onDel(id: string) {
   flex-direction: column;
   height: 100%;
   background: var(--bg-panel);
-  border: 1px solid var(--border-base);
+  border-right: 1px solid var(--border-base);
   overflow: hidden;
 }
 .hp-header {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 12px;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border-base);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.15em;
+  font-size: 12px;
+  letter-spacing: 0.08em;
   color: var(--text-secondary);
-}
-.hp-num {
-  color: var(--primary);
+  text-transform: uppercase;
+  font-weight: 600;
 }
 .hp-title {
   flex: 1;
-  color: var(--primary);
-  text-shadow: var(--shadow-glow-primary);
-  font-weight: 700;
+  color: var(--text-primary);
 }
 .hp-count {
-  font-size: 10px;
-  color: var(--text-muted);
+  font-size: 11px;
+  color: var(--text-tertiary);
   padding: 1px 6px;
-  border: 1px solid var(--border-base);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
 }
 
 .hp-empty {
@@ -115,15 +99,15 @@ function onDel(id: string) {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 20px;
+  padding: 24px;
 }
 .muted {
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 13px;
   margin: 0;
 }
 .muted-sm {
-  color: var(--text-muted);
+  color: var(--text-tertiary);
   font-size: 11px;
   margin: 4px 0 0;
 }
@@ -136,71 +120,57 @@ function onDel(id: string) {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 .hp-item {
-  background: var(--bg-elevated);
-  border: 1px solid transparent;
-  padding: 6px 8px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  position: relative;
-}
-.hp-item:hover {
-  border-color: var(--primary);
-  box-shadow: var(--shadow-glow-primary);
-}
-.hp-item.is-streaming {
-  border-left: 2px solid var(--primary);
-}
-.hp-item.is-done {
-  border-left: 2px solid var(--accent);
-}
-.hp-item.is-error {
-  border-left: 2px solid var(--error);
-}
-
-.hp-row1 {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.12s ease;
+  font-size: 13px;
+  color: var(--text-primary);
 }
-.hp-status {
-  font-family: var(--font-mono);
-  font-weight: 700;
+.hp-item:hover {
+  background: var(--bg-elevated);
 }
-.is-streaming .hp-status {
-  color: var(--primary);
-  animation: pulse-dot 1s ease-in-out infinite;
+.hp-icon {
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
 }
-.is-done .hp-status {
-  color: var(--accent);
+.is-done .hp-icon {
+  color: var(--success);
 }
-.is-error .hp-status {
+.is-error .hp-icon {
   color: var(--error);
 }
 .hp-lang {
   flex: 1;
-  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hp-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
 }
 .hp-del {
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: var(--text-tertiary);
   cursor: pointer;
   font-size: 14px;
   padding: 0 4px;
+  line-height: 1;
 }
 .hp-del:hover {
   color: var(--error);
-}
-.hp-row2 {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2px;
-}
-.hp-time {
-  color: var(--primary);
 }
 </style>
