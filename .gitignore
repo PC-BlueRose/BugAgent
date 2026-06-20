@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.env
+*.egg-info/
+.pytest_cache/
+
+# Node / Frontend
+node_modules/
+dist/
+.DS_Store
+.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Test artifacts (Playwright outputs)
+**/scripts/artifacts/
+frontend/scripts/artifacts/
+frontend/smoke-test.png
+
+# Claude Code workspace config (local only)
+.claude/
+
+# PDF reports generated at workspace root for manual inspection
+PDF报告-*.pdf
+PDF报告-*.png
+PDF报告-高清页*.png
+PDF报告-新版-*.pdf
+PDF报告-新版-*.png
+
+# OS
+Thumbs.db
