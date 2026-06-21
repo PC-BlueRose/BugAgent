@@ -1,19 +1,24 @@
 <template>
   <div :class="['sc', `is-${status}`]">
-    <span class="sc-icon" :aria-label="status">
-      <template v-if="status === 'done'">✓</template>
-      <template v-else-if="status === 'running'">⏳</template>
-      <template v-else-if="status === 'error'">✗</template>
-      <template v-else>○</template>
-    </span>
-    <div class="sc-body">
-      <div class="sc-title">{{ title }}</div>
-      <div class="sc-desc">
-        <template v-if="status === 'done'">完成</template>
-        <template v-else-if="status === 'running'">运行中…</template>
-        <template v-else-if="status === 'error'">出错</template>
-        <template v-else>等待中</template>
+    <header class="sc-header">
+      <span class="sc-icon" :aria-label="status">
+        <template v-if="status === 'done'">✓</template>
+        <template v-else-if="status === 'running'">⏳</template>
+        <template v-else-if="status === 'error'">✗</template>
+        <template v-else>○</template>
+      </span>
+      <div class="sc-titles">
+        <div class="sc-title">{{ title }}</div>
+        <div class="sc-desc">
+          <template v-if="status === 'done'">完成</template>
+          <template v-else-if="status === 'running'">运行中…</template>
+          <template v-else-if="status === 'error'">出错</template>
+          <template v-else>等待中</template>
+        </div>
       </div>
+    </header>
+    <div v-if="$slots.default" class="sc-slot">
+      <slot />
     </div>
   </div>
 </template>
@@ -27,17 +32,22 @@ defineProps<{
 
 <style scoped>
 .sc {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
   border-bottom: 1px solid var(--border-base);
+  background: var(--bg-base);
   transition: background 0.15s ease;
 }
 .sc:last-child {
   border-bottom: none;
 }
-.sc:hover {
+
+.sc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  transition: background 0.15s ease;
+}
+.sc-header:hover {
   background: var(--bg-elevated);
 }
 
@@ -69,7 +79,7 @@ defineProps<{
   color: #ffffff;
 }
 
-.sc-body {
+.sc-titles {
   flex: 1;
   min-width: 0;
 }
@@ -83,6 +93,13 @@ defineProps<{
   font-size: 12px;
   color: var(--text-secondary);
   margin-top: 2px;
+}
+
+/* slot 内容区域 */
+.sc-slot {
+  padding: 4px 16px 16px 52px;
+  font-size: 13px;
+  color: var(--text-primary);
 }
 
 @keyframes spin {
