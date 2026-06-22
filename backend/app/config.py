@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     """MiniMax API 及沙箱相关配置。"""
 
     # LLM
-    minimax_api_key: str = "your-api-key-here"
-    minimax_base_url: str = "https://api.MiniMax.cn/v1"
+    minimax_api_key: str = "sk-cp-3qOvrhpUoeAUdT8Qih_CHjJ1Vis7bmuz_YpLZLDuqz6rY5qLSugpJV1Z0FKUCNnT7l0JZggJqXzw5XGPZmXXZuvF1Cg0DDJD3WH_l0r_S0sHmbpFkGxEGU4"
+    minimax_base_url: str = "https://api.minimax.chat/v1"
     minimax_model: str = "MiniMax-M3"
     llm_timeout_sec: int = 60
 

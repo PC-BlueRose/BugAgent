@@ -37,3 +37,18 @@ FIX_USER_TEMPLATE = """原始代码语言：{language}
 
 请输出修复后的完整代码。
 """
+
+FIX_RETRY_TEMPLATE = """【⚠ 重试说明】
+上一轮修复后，代码评审员发现仍有以下问题未解决：
+{issue_list}
+
+改进建议：
+{suggestion}
+
+上一轮你给出的修复代码：
+```{language}
+{previous_fix}
+```
+
+请**重点针对上述未解决问题**重新输出修复后的完整代码。"""
+# fmt: undo
