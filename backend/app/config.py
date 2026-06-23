@@ -22,8 +22,12 @@ class Settings(BaseSettings):
     max_reflect_rounds: int = 3
     reflect_confidence_threshold: float = 0.85
 
-    # CORS
-    frontend_origin: str = "http://localhost:5173"
+    # CORS（前端地址；部署时设为 "*" 表示允许任意来源）
+    frontend_origin: str = "*"
+
+    # 服务监听地址（部署时设为 0.0.0.0 允许外部访问）
+    host: str = "0.0.0.0"
+    port: int = 8080
 
     # 代码最大长度（字符）
     max_code_length: int = 8000

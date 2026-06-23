@@ -23,10 +23,19 @@ app = FastAPI(
 )
 
 # CORS
+# - frontend_origin="*" 时允许任意来源（部署场景）
+# - 注意：CORS 规范不允许 `*` 与 `allow_credentials=True` 同时使用，
+#   因此当设置为通配时关闭凭证；开发环境指定具体来源时再打开
+_cors_origins: list[str] = (
+    ["*"] if settings.frontend_origin.strip() == "*"
+    else [o.strip() for o in settings.frontend_origin.split(",") if o.strip()]
+)
+_cors_credentials = settings.frontend_origin.strip() != "*"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_origin, "http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=_cors_origins,
+    allow_credentials=_cors_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
